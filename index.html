@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atolla - Illuminate the Unknown</title>
 
-    <!-- 1. Load Custom Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
-    <!-- 2. Load Tailwind CSS via CDN (MUST come FIRST) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 3. Tailwind CDN Configuration Script -->
     <script>
       tailwind.config = {
         theme: {
@@ -22,142 +19,186 @@
               'bioluminescent-blue': '#4AB7FF',
               'midnight-deep': '#0D1B2A',
               'coral-accent': '#FF7761',
-              'soft-sand': '#F4EFE9',
-              'seagrass-gray': '#7A8C8E',
+              'soft-sand': '#E0DACE', // Main bright text
+              'seagrass-gray': '#A9BCC6', // Slightly lighter gray for paragraphs
+              'bioluminescent-blue-dim': 'rgba(74, 183, 255, 0.8)', // Brighter base glow
+              'coral-accent-dim': 'rgba(255, 119, 97, 0.8)',
             },
             fontFamily: {
               sans: ['Lato', 'ui-sans-serif', 'system-ui', 'sans-serif'],
               serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
             },
+            keyframes: {
+              float: {
+                '0%': { transform: 'translate(0px, 0px)' },
+                '25%': { transform: 'translate(2px, -4px)' },
+                '50%': { transform: 'translate(0px, -8px)' },
+                '75%': { transform: 'translate(-2px, -4px)' },
+                '100%': { transform: 'translate(0px, 0px)' },
+              },
+              pulseGlow: { // Keep icon pulse subtle
+                 '0%, 100%': { filter: 'drop-shadow(0 0 4px theme("colors.bioluminescent-blue-dim")) opacity(0.7)', transform: 'scale(1)' },
+                 '50%': { filter: 'drop-shadow(0 0 12px theme("colors.bioluminescent-blue-dim")) opacity(0.9)', transform: 'scale(1.05)' },
+              },
+            },
+            animation: {
+              float: 'float 7s ease-in-out infinite',
+              pulseGlow: 'pulseGlow 3s ease-in-out infinite',
+            }
           }
         }
       }
     </script>
 
-    <!-- Basic Styling for Animation & Background -->
     <style>
+        html {
+            height: 100%;
+        }
+        body {
+            background-color: #000000; /* Solid Black */
+            min-height: 100%;
+            color: theme('colors.seagrass-gray'); /* Default text */
+        }
+
         #hero {
-            /* Replace with the correct path to YOUR gif */
-            background-image: url('./assets/jelly.gif');
+            background-image: url('./assets/jelly3.gif'); /* --- UPDATE THIS PATH --- */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            background-color: transparent;
         }
-        /* Style for elements to fade in */
         .fade-in-element {
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
-        /* Style for elements once they become visible */
         .fade-in-element.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
+        .text-glow-blue {
+            text-shadow: 0 0 5px theme('colors.bioluminescent-blue-dim / 0.9'),
+                         0 0 10px theme('colors.bioluminescent-blue-dim / 0.6'),
+                         0 0 20px theme('colors.bioluminescent-blue-dim / 0.4'); /* Wider faint glow */
+        }
+        .text-glow-coral {
+            text-shadow: 0 0 5px theme('colors.coral-accent-dim / 0.9'),
+                         0 0 10px theme('colors.coral-accent-dim / 0.6'),
+                         0 0 20px theme('colors.coral-accent-dim / 0.4');
+        }
+        .button-glow-blue:hover {
+            box-shadow: 0 0 10px 3px theme('colors.bioluminescent-blue-dim / 0.6'),
+                        inset 0 0 4px 1px theme('colors.bioluminescent-blue-dim / 0.3');
+        }
+        .button-glow-coral:hover {
+            box-shadow: 0 0 10px 3px theme('colors.coral-accent-dim / 0.6'),
+                        inset 0 0 4px 1px theme('colors.coral-accent-dim / 0.3');
+        }
     </style>
 
 </head>
-<body class="bg-soft-sand font-sans text-seagrass-gray antialiased">
+<body class="font-sans antialiased">
 
-    <!-- Hero Section with GIF Background -->
-    <section id="hero" class="min-h-screen flex items-center justify-center relative text-center text-soft-sand px-4">
-        <!-- Overlay for text readability -->
-        <div class="absolute inset-0 bg-midnight-deep/80 z-0"></div>
+    <main>
 
-        <!-- Content -->
-        <div class="relative z-10">
-            <h1 class="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 fade-in-element">The Glow in the Deep</h1>
-            <p class="text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto mb-8 text-gray-300 fade-in-element" style="transition-delay: 0.2s;">
+        <section id="hero" class="min-h-screen flex items-center justify-center relative text-center px-4 overflow-hidden">
+  
+            <!-- Background video -->
+            <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+              <source src="./assets/jellyfish3.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          
+            <!-- Gradient overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent z-10"></div>
+          
+            <!-- Hero content -->
+            <div class="relative z-20">
+              <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 fade-in-element text-bioluminescent-blue text-glow-blue animate-float [animation-delay:-1s]">The Glow in the Deep</h1>
+              
+              <p class="text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto mb-10 text-soft-sand fade-in-element leading-relaxed animate-float [animation-delay:-0.5s]" style="transition-delay: 0.2s;">
                 Atolla: Illuminating the Unseen with Radically Open Knowledge for Ocean Regeneration.
-            </p>
-            <a href="#about" class="bg-bioluminescent-blue text-midnight-deep font-semibold py-3 px-8 rounded-md hover:bg-blue-400 transition-colors duration-300 inline-block fade-in-element" style="transition-delay: 0.4s;">
+              </p>
+              
+              <a href="#about" class="bg-bioluminescent-blue text-midnight-deep font-bold py-3 px-10 rounded-md transition-all duration-300 ease-in-out inline-block fade-in-element transform hover:scale-105 hover:bg-blue-300 shadow-lg hover:shadow-xl button-glow-blue" style="transition-delay: 0.4s;">
                 Discover More
-            </a>
-        </div>
-    </section>
+              </a>
+            </div>
+          </section>
 
-    <!-- About / What We Do Section -->
-    <section id="about" class="py-16 md:py-24 bg-soft-sand">
-        <div class="container mx-auto px-6 max-w-4xl">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold text-midnight-deep text-center mb-12 fade-in-element">
-                Illuminating, Sharing, Regenerating
-            </h2>
-            <p class="text-lg text-gray-700 leading-relaxed mb-12 text-center fade-in-element">
-                We explore the hidden depths, translating complex data and unheard stories into shared wisdom. Our approach combines rigorous science with radical openness, believing knowledge is a commons meant to spark action and heal ecosystems.
-            </p>
+     
+        <section id="about" class="py-20 md:py-32 relative overflow-hidden">
+            <div class="container mx-auto px-6 max-w-5xl relative z-10 text-center">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-bioluminescent-blue mb-16 fade-in-element text-glow-blue animate-float [animation-delay:-1.5s]">
+                    Illuminating, Sharing, Regenerating
+                </h2>
+                
+                <p class="text-lg md:text-xl  text-soft-sand leading-relaxed md:leading-loose mb-20 fade-in-element max-w-4xl mx-auto animate-float [animation-delay:-2s]">
+                    We explore the hidden depths, translating complex data and unheard stories into shared wisdom. Our approach combines rigorous science with radical openness, believing knowledge is a commons meant to spark action and heal ecosystems.
+                </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12 text-center">
-                <!-- Feature 1 -->
-                <div class="fade-in-element" style="transition-delay: 0.1s;">
-                    <div class="mb-4 text-bioluminescent-blue text-4xl">
-                        <!-- Placeholder Icon: Lightbulb/Eye -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0m-.708-7.071l.707.707M12 21a5 5 0 110-10 5 5 0 010 10z" /></svg>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 text-center">
+                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-2.5s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.1s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-0.2s]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0m-.708-7.071l.707.707M12 21a5 5 0 110-10 5 5 0 010 10z" /></svg>
+                        </div>
+                         
+                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Illuminate</h3>
+                        <p class="text-base  text-soft-sand leading-relaxed">Shining light on overlooked ecosystems and truths through science and technology.</p>
                     </div>
-                    <h3 class="font-serif text-xl font-semibold text-midnight-deep mb-2">Illuminate</h3>
-                    <p class="text-base text-gray-600">Shining light on overlooked ecosystems and truths through science and technology.</p>
-                </div>
-                 <!-- Feature 2 -->
-                <div class="fade-in-element" style="transition-delay: 0.2s;">
-                    <div class="mb-4 text-bioluminescent-blue text-4xl">
-                         <!-- Placeholder Icon: Share/Network -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>
+                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-3s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.2s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-0.7s]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>
+                        </div>
+                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Share</h3>
+                        <p class="text-base   text-soft-sand leading-relaxed">Making knowledge radically open, accessible, and understandable for all.</p>
+                     </div>
+                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-3.5s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.3s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-1.2s]">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Regenerate</h3>
+                        <p class="text-base  text-soft-sand leading-relaxed">Turning insights into action that heals ecosystems and empowers communities.</p>
                     </div>
-                    <h3 class="font-serif text-xl font-semibold text-midnight-deep mb-2">Share</h3>
-                    <p class="text-base text-gray-600">Making knowledge radically open, accessible, and understandable for all.</p>
-                 </div>
-                 <!-- Feature 3 -->
-                <div class="fade-in-element" style="transition-delay: 0.3s;">
-                    <div class="mb-4 text-bioluminescent-blue text-4xl">
-                         <!-- Placeholder Icon: Leaf/Sprout -->
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> <!-- Using Zap icon as placeholder -->
-                    </div>
-                    <h3 class="font-serif text-xl font-semibold text-midnight-deep mb-2">Regenerate</h3>
-                    <p class="text-base text-gray-600">Turning insights into action that heals ecosystems and empowers communities.</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact / Call to Action Section -->
-    <section id="contact" class="py-16 md:py-24 bg-gray-900 text-soft-sand">
-        <div class="container mx-auto px-6 text-center max-w-3xl">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6 fade-in-element">Join the Ripple</h2>
-            <p class="text-lg text-gray-300 leading-relaxed mb-10 fade-in-element">
-                Curious to learn more, collaborate, or access our open data? Connect with us and become part of the current driving understanding and regeneration.
-            </p>
-            <a href="mailto:ameezrayyan@gmail.com" class="bg-coral-accent text-midnight-deep font-semibold py-3 px-8 rounded-md hover:bg-orange-400 transition-colors duration-300 inline-block fade-in-element">
-                Get In Touch
-            </a>
-            <!-- If adding images here, use <img src="..." loading="lazy" alt="..."> -->
-        </div>
-    </section>
+        <section id="contact" class="py-20 md:py-32 relative overflow-hidden">
+            <div class="container mx-auto px-6 text-center max-w-3xl relative z-10">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-coral-accent mb-8 fade-in-element text-glow-coral animate-float [animation-delay:-4s]">
+                    Join the Ripple
+                 </h2>
+               
+                <p class="text-lg md:text-xl  text-soft-sand leading-relaxed mb-12 fade-in-element animate-float [animation-delay:-4.5s]">
+                    Curious to learn more, collaborate, or access our open data? Connect with us and become part of the current driving understanding and regeneration.
+                </p>
+                <a href="mailto:ameezrayyan@gmail.com" class="bg-coral-accent text-black font-bold py-3 px-10 rounded-md transition-all duration-300 ease-in-out inline-block fade-in-element transform hover:scale-105 hover:bg-orange-400 shadow-lg hover:shadow-xl button-glow-coral" style="transition-delay: 0.4s;">
+                    Get In Touch
+                </a>
+            </div>
+        </section>
 
-    <!-- Footer -->
-    <footer class="bg-midnight-deep text-seagrass-gray py-8">
-        <div class="container mx-auto px-6 text-center">
-            <p class="mb-2">© 2024 Atolla. All rights reserved.</p>
-            <p class="text-xs italic">Illuminate the Unknown. Share the Truth. Regenerate the Future.</p>
-        </div>
-    </footer>
+        <footer class="text-seagrass-gray/70 py-10 border-t border-seagrass-gray/10 relative mt-16">
+            <div class="container mx-auto px-6 text-center">
+                <p class="mb-3  text-soft-sand text-sm">© 2025 Atolla. All rights reserved.</p>
+                <p class="text-xs italic opacity-80">Illuminate the Unknown. Share the Truth. Regenerate the Future.</p>
+            </div>
+        </footer>
 
-    <!-- JavaScript for Intersection Observer (Animation on Scroll) -->
+    </main>
+
     <script>
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('is-visible');
                 }
-                // Optional: Remove class if you want fade-out on scroll away
-                // else {
-                //     entry.target.classList.remove('is-visible');
-                // }
             });
         }, {
-            rootMargin: '0px', // Optional margin around the viewport
-            threshold: 0.1 // Trigger when 10% of the element is visible
+            rootMargin: '0px',
+            threshold: 0.15
         });
-
-        // Target all elements with the class 'fade-in-element'
         const elementsToAnimate = document.querySelectorAll('.fade-in-element');
         elementsToAnimate.forEach(el => observer.observe(el));
     </script>
