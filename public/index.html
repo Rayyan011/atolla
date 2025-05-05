@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,19 +10,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.161.0/build/three.min.js"></script>
 
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
               'bioluminescent-blue': '#4AB7FF',
-              'midnight-deep': '#0D1B2A',
               'coral-accent': '#FF7761',
-              'soft-sand': '#E0DACE', // Main bright text
-              'seagrass-gray': '#A9BCC6', // Slightly lighter gray for paragraphs
-              'bioluminescent-blue-dim': 'rgba(74, 183, 255, 0.8)', // Brighter base glow
+              'light-bg': '#F0F8FF',
+              'light-text': '#334155',
+              'light-text-secondary': '#64748B',
+              'light-card-bg': '#FFFFFF',
+              'light-border': '#E5E7EB',
+              'light-fog': '#aed8f1',
+              'light-particles': '#ffffff',
+              'dark-bg': '#0D1B2A',
+              'dark-bg-secondary': '#1B263B',
+              'dark-text': '#E0DACE',
+              'dark-text-secondary': '#A9BCC6',
+              'dark-card-bg': '#1B263B',
+              'dark-border': '#4A5568',
+              'bioluminescent-blue-dim': 'rgba(74, 183, 255, 0.8)',
               'coral-accent-dim': 'rgba(255, 119, 97, 0.8)',
+              'dark-fog': '#0a192f',
+              'dark-particles': '#64748B',
             },
             fontFamily: {
               sans: ['Lato', 'ui-sans-serif', 'system-ui', 'sans-serif'],
@@ -30,20 +44,24 @@
             },
             keyframes: {
               float: {
-                '0%': { transform: 'translate(0px, 0px)' },
-                '25%': { transform: 'translate(2px, -4px)' },
-                '50%': { transform: 'translate(0px, -8px)' },
-                '75%': { transform: 'translate(-2px, -4px)' },
-                '100%': { transform: 'translate(0px, 0px)' },
+                '0%': { transform: 'translateY(0px) rotate(-0.5deg)' },
+                '50%': { transform: 'translateY(-10px) rotate(0.5deg)' }, // Reduced float distance slightly
+                '100%': { transform: 'translateY(0px) rotate(-0.5deg)' },
               },
-              pulseGlow: { // Keep icon pulse subtle
+               pulseGlow: {
                  '0%, 100%': { filter: 'drop-shadow(0 0 4px theme("colors.bioluminescent-blue-dim")) opacity(0.7)', transform: 'scale(1)' },
                  '50%': { filter: 'drop-shadow(0 0 12px theme("colors.bioluminescent-blue-dim")) opacity(0.9)', transform: 'scale(1.05)' },
               },
             },
             animation: {
-              float: 'float 7s ease-in-out infinite',
+              float: 'float 7s ease-in-out infinite', // Slightly slower float
               pulseGlow: 'pulseGlow 3s ease-in-out infinite',
+            },
+            boxShadow: {
+              'dark-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
+              'dark-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+              'blue-shadow-lg': '0 10px 15px -3px rgba(74, 183, 255, 0.07), 0 4px 6px -4px rgba(74, 183, 255, 0.07)',
+              'blue-shadow-xl': '0 20px 25px -5px rgba(74, 183, 255, 0.07), 0 8px 10px -6px rgba(74, 183, 255, 0.07)',
             }
           }
         }
@@ -51,178 +69,456 @@
     </script>
 
     <style>
-        html {
-            height: 100%;
-        }
+        html { height: 100%; }
         body {
-            background-color: #000000; /* Solid Black */
-            min-height: 100%;
-            color: theme('colors.seagrass-gray'); /* Default text */
-        }
-
-        #hero {
-            background-image: url('./assets/jelly3.gif'); /* --- UPDATE THIS PATH --- */
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             background-color: transparent;
+            color: theme('colors.light-text');
+            padding-top: 4rem;
+            min-height: 100%;
+            transition: color 0.3s ease;
         }
+        .dark body { color: theme('colors.dark-text'); }
+        #three-canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        canvas { display: block; }
         .fade-in-element {
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
-        .fade-in-element.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .text-glow-blue {
+        .fade-in-element.is-visible { opacity: 1; transform: translateY(0); }
+        .button-hover-effect:hover { filter: brightness(1.1); transform: scale(1.03); }
+        :target { scroll-margin-top: 5rem; }
+        #theme-toggle-dark-icon, .dark #theme-toggle-light-icon { display: none; }
+        .dark #theme-toggle-dark-icon, #theme-toggle-light-icon { display: block; }
+        .dark .text-glow-blue {
             text-shadow: 0 0 5px theme('colors.bioluminescent-blue-dim / 0.9'),
                          0 0 10px theme('colors.bioluminescent-blue-dim / 0.6'),
-                         0 0 20px theme('colors.bioluminescent-blue-dim / 0.4'); /* Wider faint glow */
+                         0 0 20px theme('colors.bioluminescent-blue-dim / 0.4');
         }
-        .text-glow-coral {
+        .dark .text-glow-coral {
             text-shadow: 0 0 5px theme('colors.coral-accent-dim / 0.9'),
                          0 0 10px theme('colors.coral-accent-dim / 0.6'),
                          0 0 20px theme('colors.coral-accent-dim / 0.4');
         }
-        .button-glow-blue:hover {
-            box-shadow: 0 0 10px 3px theme('colors.bioluminescent-blue-dim / 0.6'),
-                        inset 0 0 4px 1px theme('colors.bioluminescent-blue-dim / 0.3');
-        }
-        .button-glow-coral:hover {
-            box-shadow: 0 0 10px 3px theme('colors.coral-accent-dim / 0.6'),
-                        inset 0 0 4px 1px theme('colors.coral-accent-dim / 0.3');
-        }
-    </style>
+        header, footer, section > .container > div { position: relative; z-index: 1; }
+        header {
+             background-color: theme('colors.white / 0.9');
+             backdrop-filter: blur(4px);
+             box-shadow: theme('boxShadow.sm');
+             transition: background-color 0.3s ease, box-shadow 0.3s ease;
+         }
+         .dark header {
+             background-color: theme('colors.dark-bg / 0.9');
+             box-shadow: theme('boxShadow.dark-lg');
+         }
+         footer {
+            background-color: theme('colors.light-card-bg');
+            border-top: 1px solid theme('colors.light-border');
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+         }
+         .dark footer {
+            background-color: theme('colors.dark-bg-secondary');
+            border-top: 1px solid theme('colors.dark-border');
+         }
+         #about, #muraka-ai, #contact { /* No specific bg needed here */ }
+         .content-card {
+             background-color: theme('colors.light-card-bg/80');
+             backdrop-filter: blur(sm);
+             box-shadow: theme('boxShadow.blue-shadow-lg');
+             transition: all 0.3s ease;
+         }
+         .dark .content-card {
+            background-color: theme('colors.dark-card-bg/80');
+            box-shadow: theme('boxShadow.dark-lg');
+         }
+         .content-card:hover {
+             box-shadow: theme('boxShadow.blue-shadow-xl');
+         }
+         .dark .content-card:hover {
+             box-shadow: theme('boxShadow.dark-xl');
+         }
+         .media-grid-item { /* Common style for grid images */
+             overflow: hidden;
+             border-radius: theme('borderRadius.lg');
+             box-shadow: theme('boxShadow.blue-shadow-lg');
+             transition: all 0.3s ease;
+         }
+          .dark .media-grid-item {
+             box-shadow: theme('boxShadow.dark-lg');
+          }
+         .media-grid-item:hover {
+             transform: scale(1.03);
+             box-shadow: theme('boxShadow.blue-shadow-xl');
+         }
+          .dark .media-grid-item:hover {
+             box-shadow: theme('boxShadow.dark-xl');
+          }
 
+
+    </style>
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased overflow-x-hidden">
+
+    <div id="three-canvas-container"></div>
+
+    <header>
+        <nav class="container mx-auto px-6 flex justify-between items-center">
+            <a href="#hero" class="font-serif text-2xl font-bold text-bioluminescent-blue">Atolla</a>
+            <div class="flex items-center space-x-4 sm:space-x-6 md:space-x-8">
+                <ul class="flex space-x-4 sm:space-x-6">
+                    <li><a href="#about" class="text-sm sm:text-base text-light-text dark:text-dark-text-secondary hover:text-bioluminescent-blue dark:hover:text-bioluminescent-blue transition-colors duration-200">About</a></li>
+                    <li><a href="#muraka-ai" class="text-sm sm:text-base text-light-text dark:text-dark-text-secondary hover:text-bioluminescent-blue dark:hover:text-bioluminescent-blue transition-colors duration-200">Muraka AI</a></li>
+                    <li><a href="#contact" class="text-sm sm:text-base text-light-text dark:text-dark-text-secondary hover:text-coral-accent dark:hover:text-coral-accent transition-colors duration-200">Contact</a></li>
+                </ul>
+                <button id="theme-toggle" type="button" class="text-light-text-secondary dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600 rounded-lg text-sm p-1.5 sm:p-2">
+                    <svg id="theme-toggle-dark-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 5.05A1 1 0 003.636 6.464l.707.707a1 1 0 001.414-1.414l-.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1zm7 8a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.95-2.121a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707-.707a1 1 0 01-1.414 0zM15 19a1 1 0 01-1.414-.05l-.707-.707a1 1 0 011.414-1.414l.707.707A1 1 0 0115 19z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
 
     <main>
-
-        <section id="hero" class="min-h-screen flex items-center justify-center relative text-center px-4 overflow-hidden">
-  
-            <!-- Background video -->
-            <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
-              <source src="./assets/jellyfish3.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          
-            <!-- Gradient overlay -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent z-10"></div>
-          
-            <!-- Hero content -->
-            <div class="relative z-20">
-              <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 fade-in-element text-bioluminescent-blue text-glow-blue animate-float [animation-delay:-1s]">The Glow in the Deep</h1>
-              
-              <p class="text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto mb-10 text-soft-sand fade-in-element leading-relaxed animate-float [animation-delay:-0.5s]" style="transition-delay: 0.2s;">
-                Atolla: Illuminating the Unseen with Radically Open Knowledge for Ocean Regeneration.
-              </p>
-              
-              <a href="#about" class="bg-bioluminescent-blue text-midnight-deep font-bold py-3 px-10 rounded-md transition-all duration-300 ease-in-out inline-block fade-in-element transform hover:scale-105 hover:bg-blue-300 shadow-lg hover:shadow-xl button-glow-blue" style="transition-delay: 0.4s;">
-                Discover More
-              </a>
-            </div>
-          </section>
-
-     
-        <section id="about" class="py-20 md:py-32 relative overflow-hidden">
-            <div class="container mx-auto px-6 max-w-5xl relative z-10 text-center">
-                <h2 class="font-serif text-4xl md:text-5xl font-bold text-bioluminescent-blue mb-16 fade-in-element text-glow-blue animate-float [animation-delay:-1.5s]">
-                    Illuminating, Sharing, Regenerating
-                </h2>
-                
-                <p class="text-lg md:text-xl  text-soft-sand leading-relaxed md:leading-loose mb-20 fade-in-element max-w-4xl mx-auto animate-float [animation-delay:-2s]">
-                    We explore the hidden depths, translating complex data and unheard stories into shared wisdom. Our approach combines rigorous science with radical openness, believing knowledge is a commons meant to spark action and heal ecosystems.
-                </p>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 text-center">
-                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-2.5s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.1s;">
-                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-0.2s]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0m-.708-7.071l.707.707M12 21a5 5 0 110-10 5 5 0 010 10z" /></svg>
-                        </div>
-                         
-                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Illuminate</h3>
-                        <p class="text-base  text-soft-sand leading-relaxed">Shining light on overlooked ecosystems and truths through science and technology.</p>
-                    </div>
-                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-3s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.2s;">
-                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-0.7s]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>
-                        </div>
-                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Share</h3>
-                        <p class="text-base   text-soft-sand leading-relaxed">Making knowledge radically open, accessible, and understandable for all.</p>
-                     </div>
-                    <div class="fade-in-element p-6 rounded-lg animate-float [animation-delay:-3.5s] transition-colors duration-300 hover:bg-gray-900/30" style="transition-delay: 0.3s;">
-                        <div class="mb-6 text-bioluminescent-blue text-5xl animate-pulseGlow [animation-delay:-1.2s]">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        </div>
-                        <h3 class="font-serif text-2xl font-semibold text-bioluminescent-blue mb-3 text-glow-blue">Regenerate</h3>
-                        <p class="text-base  text-soft-sand leading-relaxed">Turning insights into action that heals ecosystems and empowers communities.</p>
+        <section id="hero" class="min-h-[calc(100vh-4rem)] flex items-center justify-center relative px-4 lg:px-8 py-20 overflow-hidden">
+             <div class="container mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                <div class="lg:w-1/2 text-center lg:text-left relative z-10 order-last lg:order-first">
+                    <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl font-bold mb-6 fade-in-element text-bioluminescent-blue dark:text-glow-blue animate-float" style="animation-delay: 0.2s;">The Glow in the Deep</h1>
+                    <p class="text-lg md:text-xl max-w-xl mx-auto lg:mx-0 mb-10 text-light-text-secondary dark:text-dark-text-secondary fade-in-element leading-relaxed animate-float" style="transition-delay: 0.4s; animation-delay: 0.5s;">
+                        Atolla: Illuminating the Unseen with Radically Open Knowledge for Ocean Regeneration.
+                    </p>
+                    <a href="#about" class="bg-bioluminescent-blue text-white dark:text-dark-bg font-bold py-3 px-10 rounded-lg transition-all duration-300 ease-in-out inline-block fade-in-element transform shadow-lg dark:shadow-dark-lg button-hover-effect" style="transition-delay: 0.6s;">
+                        Discover More
+                    </a>
+                </div>
+                <div class="lg:w-1/2 relative fade-in-element animate-float order-first lg:order-last" style="transition-delay: 0.3s; animation-delay: 1s;">
+                    <div class="aspect-video rounded-2xl overflow-hidden shadow-xl dark:shadow-dark-xl shadow-blue-shadow-lg mx-auto max-w-xl lg:max-w-none bg-black/30 dark:bg-black/50">
+                         <video autoplay muted loop playsinline class="w-full h-full object-cover opacity-80 dark:opacity-60 mix-blend-screen dark:mix-blend-lighten">
+                            <source src="./assets/jellyfish3.mp4" type="video/mp4">
+                         </video>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="muraka-ai" class="py-20 md:py-32 bg-black/80 relative overflow-hidden">
-            <div class="container mx-auto px-6 max-w-5xl relative z-10 text-center">
-              <h2 class="font-serif text-4xl md:text-5xl font-bold text-bioluminescent-blue mb-8 fade-in-element text-glow-blue animate-float [animation-delay:-2.2s]">
-                Muraka AI: Coral Health Intelligence
-              </h2>
-          
-              <p class="text-lg md:text-xl text-soft-sand leading-relaxed max-w-3xl mx-auto mb-10 fade-in-element animate-float [animation-delay:-2.5s]">
-                Muraka AI is an object detection pipeline built using YOLOv8, designed to identify and assess coral health directly from underwater images. It’s trained on localized Maldivian datasets.
-              </p>
-          
-              <div class="flex flex-col md:flex-row justify-center gap-6 fade-in-element animate-float [animation-delay:-2.8s]">
-                <a href="https://huggingface.co/spaces/mohamedrayyan/muraka" target="_blank" class="bg-bioluminescent-blue text-midnight-deep font-bold py-3 px-8 rounded-md transition hover:scale-105 hover:bg-blue-300 shadow-lg button-glow-blue">
-                  View on Hugging Face
-                </a>
-                <a href="/assets/Automated Coral Health Assessment in the Maldives_ Addressing Dataset Limitations.docx .pdf " target="_blank" download class="bg-coral-accent text-black font-bold py-3 px-8 rounded-md transition hover:scale-105 hover:bg-orange-400 shadow-lg button-glow-coral">
-                  Download Research Paper
-                </a>
-              </div>
+        <section id="about" class="py-24 md:py-32 relative overflow-hidden">
+             <div class="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16 mb-20">
+                <div class="lg:w-1/2 relative order-first lg:order-first">
+                    <div class="grid grid-cols-2 gap-4 md:gap-6">
+                        <div class="media-grid-item aspect-square fade-in-element animate-float" style="transition-delay: 0.1s; animation-delay: 0.4s;">
+                            <img src="./assets/jelly.gif" alt="Underwater research" class="w-full h-full object-cover">
+                        </div>
+                         <div class="media-grid-item aspect-square fade-in-element animate-float" style="transition-delay: 0.2s; animation-delay: 0.8s;">
+                            <img src="./assets/jelly.gif" alt="Data visualization concept" class="w-full h-full object-cover">
+                        </div>
+                        <div class="media-grid-item aspect-square fade-in-element animate-float" style="transition-delay: 0.2s; animation-delay: 0.8s;">
+                          <img src="./assets/jelly.gif" alt="Data visualization concept" class="w-full h-full object-cover">
+                      </div>
+                    </div>
+                </div>
+                 <div class="lg:w-1/2 text-center lg:text-left relative z-10 order-last lg:order-last">
+                    <h2 class="font-serif text-4xl md:text-5xl font-bold text-bioluminescent-blue dark:text-glow-blue mb-8 fade-in-element animate-float">
+                        Our Approach
+                    </h2>
+                    <p class="text-lg md:text-xl text-light-text-secondary dark:text-dark-text-secondary leading-relaxed md:leading-loose fade-in-element max-w-xl mx-auto lg:mx-0 animate-float" style="animation-delay: 0.3s;">
+                        We explore the hidden depths, translating complex data and unheard stories into shared wisdom. Our approach combines rigorous science with radical openness, believing knowledge is a commons meant to spark action and heal ecosystems.
+                    </p>
+                </div>
             </div>
-          </section>
-
-        <section id="contact" class="py-20 md:py-32 relative overflow-hidden">
-            <div class="container mx-auto px-6 text-center max-w-3xl relative z-10">
-                <h2 class="font-serif text-4xl md:text-5xl font-bold text-coral-accent mb-8 fade-in-element text-glow-coral animate-float [animation-delay:-4s]">
-                    Join the Ripple
-                 </h2>
-               
-                <p class="text-lg md:text-xl  text-soft-sand leading-relaxed mb-12 fade-in-element animate-float [animation-delay:-4.5s]">
-                    Curious to learn more, collaborate, or access our open data? Connect with us and become part of the current driving understanding and regeneration.
-                </p>
-                <a href="mailto:info@atolla.ngo" class="bg-coral-accent text-black font-bold py-3 px-10 rounded-md transition-all duration-300 ease-in-out inline-block fade-in-element transform hover:scale-105 hover:bg-orange-400 shadow-lg hover:shadow-xl button-glow-coral" style="transition-delay: 0.4s;">
-                    Get In Touch
-                </a>
+            <div class="container mx-auto px-6 max-w-6xl relative z-10 text-center">
+                 <h3 class="font-serif text-3xl md:text-4xl font-bold text-bioluminescent-blue dark:text-glow-blue mb-16 fade-in-element animate-float">
+                    Core Pillars
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+                    <div class="content-card fade-in-element p-8 rounded-xl animate-float" style="transition-delay: 0.2s; animation-delay: 0.6s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl dark:animate-pulseGlow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0m-.708-7.071l.707.707M12 21a5 5 0 110-10 5 5 0 010 10z" /></svg>
+                        </div>
+                        <h4 class="font-serif text-2xl font-semibold text-bioluminescent-blue dark:text-glow-blue mb-3">Illuminate</h4>
+                        <p class="text-base text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">Shining light on overlooked ecosystems and truths through science and technology.</p>
+                    </div>
+                    <div class="content-card fade-in-element p-8 rounded-xl animate-float" style="transition-delay: 0.3s; animation-delay: 0.9s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl dark:animate-pulseGlow [animation-delay:-0.5s]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>
+                        </div>
+                        <h4 class="font-serif text-2xl font-semibold text-bioluminescent-blue dark:text-glow-blue mb-3">Share</h4>
+                        <p class="text-base text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">Making knowledge radically open, accessible, and understandable for all.</p>
+                     </div>
+                    <div class="content-card fade-in-element p-8 rounded-xl animate-float" style="transition-delay: 0.4s; animation-delay: 1.2s;">
+                        <div class="mb-6 text-bioluminescent-blue text-5xl dark:animate-pulseGlow [animation-delay:-1s]">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <h4 class="font-serif text-2xl font-semibold text-bioluminescent-blue dark:text-glow-blue mb-3">Regenerate</h4>
+                        <p class="text-base text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">Turning insights into action that heals ecosystems and empowers communities.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <footer class="text-seagrass-gray/70 py-10 border-t border-seagrass-gray/10 relative mt-16">
-            <div class="container mx-auto px-6 text-center">
-                <p class="mb-3  text-soft-sand text-sm">© 2025 Atolla. All rights reserved.</p>
-                <p class="text-xs italic opacity-80">Illuminate the Unknown. Share the Truth. Regenerate the Future.</p>
+        <section id="muraka-ai" class="py-24 md:py-32 relative overflow-hidden">
+            <div class="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                <div class="lg:w-1/2 text-center lg:text-left relative z-10 order-last lg:order-first">
+                    <h2 class="font-serif text-4xl md:text-5xl font-bold text-bioluminescent-blue dark:text-glow-blue mb-8 fade-in-element animate-float">
+                        Muraka AI: Coral Health Intelligence
+                    </h2>
+                    <p class="text-lg md:text-xl text-light-text-secondary dark:text-dark-text-secondary leading-relaxed max-w-xl mx-auto lg:mx-0 mb-10 fade-in-element animate-float" style="animation-delay: 0.2s;">
+                        Muraka AI is an object detection pipeline built using YOLOv8, designed to identify and assess coral health directly from underwater images. It’s trained on localized Maldivian datasets, providing crucial insights for conservation efforts.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-6 fade-in-element animate-float" style="animation-delay: 0.4s;">
+                        <a href="https://huggingface.co/spaces/mohamedrayyan/muraka" target="_blank" class="bg-bioluminescent-blue text-white dark:text-dark-bg font-bold py-3 px-8 rounded-lg transition-all duration-300 ease-in-out shadow-md dark:shadow-dark-lg button-hover-effect w-full sm:w-auto">
+                        View on Hugging Face
+                        </a>
+                        <a href="./assets/paper.pdf" target="_blank" download class="bg-coral-accent text-white dark:text-dark-bg font-bold py-3 px-8 rounded-lg transition-all duration-300 ease-in-out shadow-md dark:shadow-dark-lg button-hover-effect w-full sm:w-auto">
+                        Download Paper
+                        </a>
+                    </div>
+                </div>
+                 <div class="lg:w-1/2 relative order-first lg:order-last">
+                     <div class="grid grid-cols-2 gap-4 md:gap-6">
+                         <div class="media-grid-item aspect-[4/3] fade-in-element animate-float" style="transition-delay: 0.1s; animation-delay: 0.6s;">
+                            <img src="./assets/muraka" alt="AI detecting coral" class="w-full h-full object-cover">
+                        </div>
+                         <div class="media-grid-item aspect-[4/3] fade-in-element animate-float" style="transition-delay: 0.2s; animation-delay: 1.0s;">
+                            <img src="./assets/muraka" alt="Healthy coral reef segment" class="w-full h-full object-cover">
+                        </div>
+                     </div>
+                </div>
             </div>
-        </footer>
+          </section>
 
+        <section id="contact" class="py-24 md:py-32 relative overflow-hidden">
+             <div class="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                 <div class="lg:w-1/2 relative order-first lg:order-first">
+                      <div class="grid grid-cols-2 gap-4 md:gap-6">
+                         <div class="media-grid-item aspect-video col-span-2 fade-in-element animate-float" style="transition-delay: 0.1s; animation-delay: 0.8s;">
+                             <img src="./assets/contact1.jpg" alt="Ocean community collaboration" class="w-full h-full object-cover">
+                         </div>
+                         <div class="media-grid-item aspect-square fade-in-element animate-float" style="transition-delay: 0.2s; animation-delay: 1.2s;">
+                            <img src="./assets/contact2.jpg" alt="Close up of ocean data map" class="w-full h-full object-cover">
+                        </div>
+                         <div class="media-grid-item aspect-square fade-in-element animate-float" style="transition-delay: 0.3s; animation-delay: 1.6s;">
+                            <img src="./assets/contact3.jpg" alt="Person looking out at the ocean" class="w-full h-full object-cover">
+                        </div>
+                     </div>
+                </div>
+                <div class="lg:w-1/2 text-center lg:text-left relative z-10 order-last lg:order-last">
+                    <h2 class="font-serif text-4xl md:text-5xl font-bold text-coral-accent dark:text-glow-coral mb-8 fade-in-element animate-float">
+                        Join the Ripple
+                    </h2>
+                    <p class="text-lg md:text-xl text-light-text-secondary dark:text-dark-text-secondary leading-relaxed max-w-xl mx-auto lg:mx-0 mb-12 fade-in-element animate-float" style="animation-delay: 0.2s;">
+                        Curious to learn more, collaborate, or access our open data? Connect with us and become part of the current driving understanding and regeneration for our oceans.
+                    </p>
+                    <a href="mailto:ameezrayyan@gmail.com" class="bg-coral-accent text-white dark:text-dark-bg font-bold py-3 px-10 rounded-lg transition-all duration-300 ease-in-out inline-block fade-in-element shadow-lg dark:shadow-dark-lg button-hover-effect animate-float" style="transition-delay: 0.3s; animation-delay: 0.4s;">
+                        Get In Touch
+                    </a>
+                </div>
+            </div>
+        </section>
     </main>
 
+    <footer>
+        <div class="container mx-auto px-6 text-center">
+            <div class="mb-4">
+                <a href="#hero" class="font-serif text-xl font-bold text-bioluminescent-blue">Atolla</a>
+            </div>
+            <ul class="flex justify-center space-x-6 mb-4">
+                 <li><a href="#about" class="text-sm hover:text-bioluminescent-blue dark:hover:text-bioluminescent-blue transition-colors duration-200">About</a></li>
+                <li><a href="#muraka-ai" class="text-sm hover:text-bioluminescent-blue dark:hover:text-bioluminescent-blue transition-colors duration-200">Muraka AI</a></li>
+                <li><a href="#contact" class="text-sm hover:text-coral-accent dark:hover:text-coral-accent transition-colors duration-200">Contact</a></li>
+            </ul>
+            <p class="mb-2 text-sm">© 2025 Atolla. All rights reserved.</p>
+            <p class="text-xs italic opacity-80">Illuminate the Unknown. Share the Truth. Regenerate the Future.</p>
+        </div>
+    </footer>
+
     <script>
+        (function() {
+            if (typeof THREE === 'undefined') {
+                console.error("Three.js not loaded.");
+                return;
+            }
+
+            let scene, camera, renderer, particles, ambientLight, directionalLight;
+            let particleGeometry, particleMaterial;
+            const particleCount = 1500;
+            const clock = new THREE.Clock();
+            const canvasContainer = document.getElementById('three-canvas-container');
+
+            if (!canvasContainer) {
+                console.error("#three-canvas-container not found.");
+                return;
+            }
+
+            const lightColors = { fog: '#aed8f1', particles: '#ffffff', ambient: '#d1e9fc', directionalIntensity: 1.0 };
+            const darkColors = { fog: '#0a192f', particles: '#64748B', ambient: '#1b2f4a', directionalIntensity: 0.6 };
+
+            function initThreeJS() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 5;
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0);
+                canvasContainer.appendChild(renderer.domElement);
+
+                ambientLight = new THREE.AmbientLight(0xffffff, 1);
+                scene.add(ambientLight);
+                directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(0.5, 1, 0.75);
+                scene.add(directionalLight);
+
+                scene.fog = new THREE.FogExp2(0xffffff, 0.05);
+                createParticles();
+                window.addEventListener('resize', onWindowResize, false);
+            }
+
+            function createParticles() {
+                particleGeometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(particleCount * 3);
+                const velocities = new Float32Array(particleCount * 3);
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    positions[i3] = (Math.random() - 0.5) * 30;
+                    positions[i3 + 1] = (Math.random() - 0.5) * 20;
+                    positions[i3 + 2] = (Math.random() - 0.5) * 20;
+                    velocities[i3] = 0;
+                    velocities[i3 + 1] = (Math.random() - 0.7) * 0.01;
+                    velocities[i3 + 2] = (Math.random() - 0.5) * 0.005;
+                }
+
+                particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                particleGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+
+                particleMaterial = new THREE.PointsMaterial({
+                    size: 0.04, transparent: true, opacity: 0.7,
+                    blending: THREE.AdditiveBlending, depthWrite: false
+                });
+
+                particles = new THREE.Points(particleGeometry, particleMaterial);
+                scene.add(particles);
+            }
+
+            function animateParticles(deltaTime) {
+                 if (!particleGeometry) return;
+                const positions = particleGeometry.attributes.position.array;
+                const velocities = particleGeometry.attributes.velocity.array;
+                const bounds = { x: 15, y: 10, z: 10 };
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    positions[i3] += velocities[i3] * deltaTime * 30;
+                    positions[i3 + 1] += velocities[i3 + 1] * deltaTime * 30;
+                    positions[i3 + 2] += velocities[i3 + 2] * deltaTime * 30;
+
+                    if (positions[i3 + 1] < -bounds.y) {
+                        positions[i3 + 1] = bounds.y;
+                        positions[i3] = (Math.random() - 0.5) * bounds.x * 2;
+                        positions[i3 + 2] = (Math.random() - 0.5) * bounds.z * 2;
+                    }
+                     if (positions[i3] > bounds.x || positions[i3] < -bounds.x) velocities[i3] *= -1;
+                     if (positions[i3 + 2] > bounds.z || positions[i3 + 2] < -bounds.z) velocities[i3 + 2] *= -1;
+                }
+                particleGeometry.attributes.position.needsUpdate = true;
+            }
+
+            function onWindowResize() {
+                if (!camera || !renderer) return;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                 if (!scene || !camera || !renderer) return;
+
+                const deltaTime = clock.getDelta();
+                const elapsedTime = clock.getElapsedTime();
+                animateParticles(deltaTime);
+
+                if (particles) { particles.rotation.y = elapsedTime * 0.02; }
+
+                camera.position.x = Math.sin(elapsedTime * 0.1) * 0.2;
+                camera.position.y = Math.cos(elapsedTime * 0.08) * 0.1;
+                camera.lookAt(scene.position);
+                renderer.render(scene, camera);
+            }
+
+            function updateThemeColors() {
+                if (!scene || !scene.fog || !ambientLight || !directionalLight || !particleMaterial) return;
+                const isDark = document.documentElement.classList.contains('dark');
+                const colors = isDark ? darkColors : lightColors;
+
+                scene.fog.color.set(colors.fog);
+                scene.fog.density = isDark ? 0.06 : 0.05;
+                ambientLight.color.set(colors.ambient);
+                directionalLight.intensity = colors.directionalIntensity;
+                particleMaterial.color.set(colors.particles);
+            }
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme');
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function setTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+                updateThemeColors();
+            }
+
+            initThreeJS();
+
+            if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
+                 setTheme(true);
+            } else {
+                setTheme(false);
+                 if (document.documentElement.classList.contains('dark')) {
+                      document.documentElement.classList.remove('dark');
+                 }
+            }
+
+            if(themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function() {
+                    setTheme(!document.documentElement.classList.contains('dark'));
+                });
+            } else {
+                console.error("Theme toggle button not found.");
+            }
+
+            prefersDarkScheme.addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    setTheme(e.matches);
+                }
+            });
+
+            animate();
+
+        })();
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('is-visible');
                 }
             });
-        }, {
-            rootMargin: '0px',
-            threshold: 0.15
-        });
+        }, { rootMargin: '0px', threshold: 0.1 });
+
         const elementsToAnimate = document.querySelectorAll('.fade-in-element');
         elementsToAnimate.forEach(el => observer.observe(el));
-    </script>
 
+    </script>
 </body>
 </html>
