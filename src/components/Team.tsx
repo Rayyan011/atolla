@@ -36,21 +36,21 @@ const Team = () => {
   ];
 
   return (
-    <section id="team" className="py-24 px-6 md:px-12 relative">
+    <section id="team" className="py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-12 relative">
       <div className="absolute inset-0 bg-water-gradient"></div>
       <div className="absolute inset-0 bg-grain opacity-20 mix-blend-overlay"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="font-playfair text-4xl md:text-5xl text-atolla-seagrass mb-6">
+        <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+          <h2 className="font-playfair text-2xl sm:text-3xl md:text-5xl text-atolla-seagrass mb-4 md:mb-6">
             Our Team
           </h2>
-          <p className="text-atolla-seagrass/95 text-lg font-medium">
+          <p className="text-atolla-seagrass/95 text-base sm:text-lg font-medium">
             A diverse collective of scientists, technologists, designers, and storytellers united by a shared passion for the ocean.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
           {teamMembers.slice(0, 3).map((member, index) => (
             <Card 
               key={index} 
@@ -63,21 +63,21 @@ const Team = () => {
                   className="w-full h-full object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h3 className="font-playfair text-white text-xl font-semibold">{member.name}</h3>
-                  <p className="text-white/90 text-sm font-medium">{member.role}</p>
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                  <h3 className="font-playfair text-white text-lg sm:text-xl font-semibold">{member.name}</h3>
+                  <p className="text-white/90 text-xs sm:text-sm font-medium">{member.role}</p>
                 </div>
               </div>
-              <div className="p-5">
-                <p className="text-atolla-seagrass/95 font-medium">{member.bio}</p>
+              <div className="p-4 sm:p-5">
+                <p className="text-atolla-seagrass/95 text-sm sm:text-base font-medium">{member.bio}</p>
               </div>
             </Card>
           ))}
-          <div className="col-span-1 md:col-span-2 lg:col-span-3 flex justify-center gap-8">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col sm:flex-row justify-center gap-6 md:gap-8">
             {teamMembers.slice(3).map((member, index) => (
               <Card 
                 key={index + 3} 
-                className="w-full max-w-md overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-white/90 hover:-translate-y-1"
+                className="w-full sm:max-w-md overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-white/90 hover:-translate-y-1"
               >
                 <div className="aspect-[4/5] overflow-hidden relative">
                   <img
@@ -86,13 +86,13 @@ const Team = () => {
                     className="w-full h-full object-cover object-center"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <h3 className="font-playfair text-white text-xl font-semibold">{member.name}</h3>
-                    <p className="text-white/90 text-sm font-medium">{member.role}</p>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                    <h3 className="font-playfair text-white text-lg sm:text-xl font-semibold">{member.name}</h3>
+                    <p className="text-white/90 text-xs sm:text-sm font-medium">{member.role}</p>
                   </div>
                 </div>
-                <div className="p-5">
-                  <p className="text-atolla-seagrass/95 font-medium">{member.bio}</p>
+                <div className="p-4 sm:p-5">
+                  <p className="text-atolla-seagrass/95 text-sm sm:text-base font-medium">{member.bio}</p>
                 </div>
               </Card>
             ))}
