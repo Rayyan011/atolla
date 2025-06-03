@@ -22,7 +22,7 @@ const Team = () => {
       image: "/images/houd.jpeg"
     },
     {
-      name: "Shahindha",
+      name: "Mariyam Shahindha",
       role: "Director of Visual Identity & Creative Development",
       bio: "Shaping Atolla's visual identity and creative direction across all platforms.",
       image: "/images/shahindha.jpeg"
